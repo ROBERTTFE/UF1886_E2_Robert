@@ -194,3 +194,70 @@ id | order_id | product_id |                       name                        |
 (10 rows)
 
 ```
+
+#### Crear Schema Staging y tabla destino
+
+- Conectado al psql del contenedor:
+```
+CREATE SCHEMA IF NOT EXISTS staging;
+
+CREATE TABLE IF NOT EXISTS staging.sales_clean (
+    id                  SERIAL PRIMARY KEY,
+    sale_order_id       INTEGER,
+    order_name          VARCHAR(100),
+    partner_name        VARCHAR(255),
+    partner_email       VARCHAR(255),
+    product_name        VARCHAR(255),
+    product_code        VARCHAR(100),
+    qty_ordered         NUMERIC(16,4)  DEFAULT 0,
+    unit_price          NUMERIC(16,4)  DEFAULT 0,
+    price_subtotal      NUMERIC(16,4)  DEFAULT 0,
+    order_date          DATE,
+    order_state         VARCHAR(50),
+    currency_name       VARCHAR(10),
+    etl_load_date       TIMESTAMP      DEFAULT NOW(),
+    etl_source          VARCHAR(100)   DEFAULT 'hop_pipeline_v1'
+);
+```
+
+- Verificar creación
+```
+\dt staging.*
+\d staging.sales_clean
+```
+```
+           List of relations
+ Schema  |    Name     | Type  | Owner
+---------+-------------+-------+-------
+ staging | sales_clean | table | user
+(1 row)
+
+                                              Table "staging.sales_clean"
+     Column     |            Type             | Collation | Nullable |                     Default
+----------------+-----------------------------+-----------+----------+-------------------------------------------------
+ id             | integer                     |           | not null | nextval('staging.sales_clean_id_seq'::regclass)
+ sale_order_id  | integer                     |           |          |
+ order_name     | character varying(100)      |           |          |
+ partner_name   | character varying(255)      |           |          |
+ partner_email  | character varying(255)      |           |          |
+ product_name   | character varying(255)      |           |          |
+ product_code   | character varying(100)      |           |          |
+ qty_ordered    | numeric(16,4)               |           |          | 0
+ unit_price     | numeric(16,4)               |           |          | 0
+ price_subtotal | numeric(16,4)               |           |          | 0
+ order_date     | date                        |           |          |
+ order_state    | character varying(50)       |           |          |
+ currency_name  | character varying(10)       |           |          |
+ etl_load_date  | timestamp without time zone |           |          | now()
+ etl_source     | character varying(100)      |           |          | 'hop_pipeline_v1'::character varying
+Indexes:
+    "sales_clean_pkey" PRIMARY KEY, btree (id)
+
+```
+- Dar permisos
+```
+GRANT ALL PRIVILEGES ON SCHEMA staging TO odoo;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA staging TO odoo;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA staging TO odoo;
+```
+
